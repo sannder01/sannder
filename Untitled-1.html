@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мини-игра</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #1e1e2e;
+            color: #ffffff;
+        }
+        .container {
+            margin: auto;
+            width: 50%;
+            padding: 20px;
+            background: #2e2e3e;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        button {
+            margin: 10px;
+            padding: 15px;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        button:disabled {
+            background-color: gray;
+            cursor: not-allowed;
+        }
+        .attack-button {
+            background-color: #ff4c4c;
+            color: white;
+        }
+        .attack-button:hover {
+            background-color: #ff0000;
+        }
+        #log {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .damage {
+            animation: flash 0.5s;
+        }
+        @keyframes flash {
+            0% { background-color: red; }
+            50% { background-color: transparent; }
+            100% { background-color: red; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔥 Битва с боссом 🔥</h1>
+        <p id="player-hp">Твои HP: 100</p>
+        <p id="boss-hp">HP босса: 100</p>
+        <button class="attack-button" id="attack-1" onclick="attack(1)" disabled>Атаковать 1 раз</button>
+        <button class="attack-button" id="attack-2" onclick="attack(2)" disabled>Атаковать 2 раза</button>
+        <button class="attack-button" id="attack-3" onclick="attack(3)" disabled>Атаковать 3 раза</button>
+        <p id="log"></p>
+    </div>
+    
+    <script>
+        class Player {
+            constructor() {
+                this.hp = 100;
+                this.attack = 20;
+                this.level = 1;
+            }
+
+            takeDamage(damage) {
+                this.hp -= damage;
+                document.getElementById("player-hp").classList.add("damage");
+                setTimeout(() => {
+                    document.getElementById("player-hp").classList.remove("damage");
+                }, 500);
+                if (this.hp <= 0) {
+                    this.hp = 0;
+                    logMessage("Ты проиграл!");
+                    disableButtons();
+                }
+                updateUI();
+            }
+
+            attackBoss(boss, hits) {
+                if (hits > 0) {
+                    boss.hp -= this.attack * hits;
+                    document.getElementById("boss-hp").classList.add("damage");
+                    setTimeout(() => {
+                        document.getElementById("boss-hp").classList.remove("damage");
+                    }, 500);
+                    logMessage(`Ты попал! HP босса: ${boss.hp}`);
+                    if (boss.hp <= 0) {
+                        boss.hp = 0;
+                        logMessage("Ты победил!");
+                        this.level++;
+                        disableButtons();
+                    }
+                } else {
+                    logMessage("Ты промахнулся, бро! Что с аимом?");
+                }
+                updateUI();
+            }
+        }
+
+        class Boss {
+            constructor() {
+                this.hp = 100;
+                this.attack = 20;
+            }
+
+            attackPlayer(player) {
+                let r = Math.floor(Math.random() * 5);
+                if (r > 0) {
+                    player.takeDamage(this.attack * r);
+                    if (player.hp > 0) {
+                        logMessage("Босс попал по тебе!");
+                        enableButtons();
+                    }
+                } else {
+                    logMessage("Босс промахнулся! Тебе повезло!");
+                    enableButtons();
+                }
+                updateUI();
+            }
+        }
+
+        let player = new Player();
+        let boss = new Boss();
+
+        function attack(hits) {
+            disableButtons();
+            player.attackBoss(boss, hits);
+            if (boss.hp > 0) {
+                setTimeout(() => boss.attackPlayer(player), 2000);
+            }
+        }
+
+        function updateUI() {
+            document.getElementById("player-hp").innerText = `Твои HP: ${player.hp}`;
+            document.getElementById("boss-hp").innerText = `HP босса: ${boss.hp}`;
+        }
+
+        function logMessage(message) {
+            document.getElementById("log").innerText = message;
+        }
+
+        function disableButtons() {
+            document.getElementById("attack-1").disabled = true;
+            document.getElementById("attack-2").disabled = true;
+            document.getElementById("attack-3").disabled = true;
+        }
+
+        function enableButtons() {
+            if (player.hp > 0 && boss.hp > 0) {
+                document.getElementById("attack-1").disabled = false;
+                document.getElementById("attack-2").disabled = false;
+                document.getElementById("attack-3").disabled = false;
+            }
+        }
+
+        enableButtons();
+    </script>
+</body>
+</html>
